@@ -1,13 +1,12 @@
-var SimpleBank = artifacts.require("./SimpleBank.sol");
+const SimpleBank = artifacts.require('./SimpleBank.sol');
 
-contract('SimpleBank', function(accounts) {
-
-  const owner = accounts[0]
+contract('SimpleBank', (accounts) => {
+  const owner = accounts[0];
   const alice = accounts[1];
   const bob = accounts[2];
   const deposit = web3.toBigNumber(2);
 
-  it("mark addresses as enrolled", async () => {
+  it('mark addresses as enrolled', async () => {
     const bank = await SimpleBank.deployed();
 
     await bank.enroll({from: alice});
@@ -19,7 +18,7 @@ contract('SimpleBank', function(accounts) {
     assert.equal(ownerEnrolled, false, 'only enrolled users should be marked enrolled');
   });
 
-  it("should deposit correct amount", async () => {
+  it('should deposit correct amount', async () => {
     const bank = await SimpleBank.deployed();
 
     await bank.enroll({from: alice});
@@ -32,31 +31,35 @@ contract('SimpleBank', function(accounts) {
     const expectedEventResult = {accountAddress: alice, amount: deposit};
 
     const LogDepositMade = await bank.LogDepositMade();
-    const log = await new Promise(function(resolve, reject) {
-        LogDepositMade.watch(function(error, log){ resolve(log);});
+    const log = await new Promise((resolve, reject) => {
+        LogDepositMade.watch((error, log) => {
+          resolve(log);
+        });
     });
 
     const logAccountAddress = log.args.accountAddress;
     const logDepositAmount = log.args.amount.toNumber();
 
-    assert.equal(expectedEventResult.accountAddress, logAccountAddress, "LogDepositMade event accountAddress property not emmitted, check deposit method");
-    assert.equal(expectedEventResult.amount, logDepositAmount, "LogDepositMade event amount property not emmitted, check deposit method");
+    assert.equal(expectedEventResult.accountAddress, logAccountAddress, 'LogDepositMade event accountAddress property not emmitted, check deposit method');
+    assert.equal(expectedEventResult.amount, logDepositAmount, 'LogDepositMade event amount property not emmitted, check deposit method');
   });
 
-  it("should withdraw correct amount", async () => {
+  it('should withdraw correct amount', async () => {
     const bank = await SimpleBank.deployed();
     const initialAmount = 0;
-   
+
     await bank.withdraw(deposit, {from: alice});
     const balance = await bank.balance({from: alice});
 
     assert.equal(balance.toString(), initialAmount.toString(), 'balance incorrect after withdrawal, check withdraw method');
 
     const LogWithdrawal = await bank.LogWithdrawal();
-    const log = await new Promise(function(resolve, reject) {
-      LogWithdrawal.watch(function(error, log){ resolve(log);});
+    const log = await new Promise((resolve, reject) => {
+      LogWithdrawal.watch((error, log) => {
+        resolve(log);
+      });
     });
-    
+
     const accountAddress = log.args.accountAddress;
     const newBalance = log.args.newBalance.toNumber();
     const withdrawalAmount = log.args.withdrawAmount.toNumber();
@@ -64,9 +67,8 @@ contract('SimpleBank', function(accounts) {
     const expectedEventResult = {accountAddress: alice, newBalance: initialAmount, withdrawalAmount: deposit};
 
 
-    assert.equal(expectedEventResult.accountAddress, accountAddress, "LogWithdrawal event accountAddress property not emmitted, check deposit method");
-    assert.equal(expectedEventResult.newBalance, newBalance, "LogWithdrawal event newBalance property not emmitted, check deposit method");
-    assert.equal(expectedEventResult.withdrawalAmount, withdrawalAmount, "LogWithdrawal event withdrawalAmount property not emmitted, check deposit method");
-
+    assert.equal(expectedEventResult.accountAddress, accountAddress, 'LogWithdrawal event accountAddress property not emmitted, check deposit method');
+    assert.equal(expectedEventResult.newBalance, newBalance, 'LogWithdrawal event newBalance property not emmitted, check deposit method');
+    assert.equal(expectedEventResult.withdrawalAmount, withdrawalAmount, 'LogWithdrawal event withdrawalAmount property not emmitted, check deposit method');
   });
 });
